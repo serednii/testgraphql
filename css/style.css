@@ -1,0 +1,77 @@
+.box {
+    display: flex;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.images {
+    border: 1px solid black;
+    padding: 5px;
+    flex-basis: 70%;
+}
+
+.text {
+    border: 1px solid black;
+    padding: 5px;
+    flex-basis: 30%;
+    flex-shrink: 0;
+}
+
+.svg1 {
+    position: fixed;
+    top: 9px;
+    right: 10px;
+    z-index: 2;
+    /* display: none; */
+}
+
+.btn-svg {
+    position: fixed;
+    top: 500px;
+    right: 150px;
+}
+
+.btn-svg:hover~.svg1 {
+    display: none;
+}
+
+.btn-hidden {
+    position: fixed;
+    top: 500px;
+    right: 20px;
+
+}
+
+.btn-hidden:hover~.canvas {
+    display: none;
+}
+
+.canvas {
+    position: fixed;
+    right: 3px;
+    top: 3px;
+    display: none;
+}
+
+.canvas1 {
+    position: fixed;
+    left: 3px;
+    top: 3px;
+    display: none;
+}
+
+body {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+.target {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+}
+
+.text:hover+.text__hover {
+    color: red;
+}
