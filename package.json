@@ -8,9 +8,10 @@
     "gh-pages": "^6.1.0"
   },
   "dependencies": {
+    "apollo-server-express": "^3.13.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "express-graphql": "^0.12.0",
+    "graphql": "^16.9.0",
     "graphql-type-json": "^0.3.2",
     "mongoose": "^8.5.1",
     "nodemon": "^3.1.4"
@@ -18,8 +19,5 @@
   "engines": {
     "node": "20.x",
     "npm": "10.x"
-  },
-  "peerDependencies": {
-    "graphql": "^14.7.0 || ^15.3.0"
   }
 }
