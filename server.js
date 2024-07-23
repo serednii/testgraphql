@@ -1,6 +1,6 @@
+const mongoose = require('mongoose');
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 
 // Імпорт моделей
@@ -11,8 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 3040;
 
 // Підключення до MongoDB
-mongoose.connect('mongodb+srv://seredniimykola:h5ZgrweHvwejowJY@test.2hvsgym.mongodb.net/Link-data?retryWrites=true&w=majority&appName=test', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb+srv://seredniimykola:h5ZgrweHvwejowJY@test.2hvsgym.mongodb.net/Link-data?retryWrites=true&w=majority&appName=test');
 
+// Встановлення обробника подій для підключення до MongoDB
 const dbConnection = mongoose.connection;
 dbConnection.on('error', err => console.log(`Connection error: ${err}`));
 dbConnection.once('open', () => {
@@ -61,38 +62,118 @@ const typeDefs = gql`
 // Резолвери
 const resolvers = {
     Query: {
-        movie: (_, { id }) => Movie.findById(id),
-        movies: () => Movie.find({}),
-        director: (_, { id }) => Director.findById(id),
-        directors: () => Director.find({})
+        movie: async (_, { id }) => {
+            try {
+                return await Movie.findById(id).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch movie');
+            }
+        },
+        movies: async () => {
+            try {
+                return await Movie.find({}).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch movies');
+            }
+        },
+        director: async (_, { id }) => {
+            try {
+                return await Director.findById(id).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch director');
+            }
+        },
+        directors: async () => {
+            try {
+                return await Director.find({}).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch directors');
+            }
+        }
     },
     Mutation: {
-        addDirector: (_, { name, age }) => {
-            const director = new Director({ name, age });
-            return director.save();
+        addDirector: async (_, { name, age }) => {
+            try {
+                const director = new Director({ name, age });
+                return await director.save();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to add director');
+            }
         },
-        addMovie: (_, { name, genre, watched, rate, directorId }) => {
-            const movie = new Movie({ name, genre, watched, rate, directorId });
-            return movie.save();
+        addMovie: async (_, { name, genre, watched, rate, directorId }) => {
+            try {
+                const movie = new Movie({ name, genre, watched, rate, directorId });
+                return await movie.save();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to add movie');
+            }
         },
-        deleteDirector: (_, { id }) => Director.findByIdAndDelete(id),
-        deleteMovie: (_, { id }) => Movie.findByIdAndDelete(id),
-        updateDirector: (_, { id, name, age }) => Director.findByIdAndUpdate(
-            id,
-            { name, age },
-            { new: true }
-        ),
-        updateMovie: (_, { id, name, genre, watched, rate }) => Movie.findByIdAndUpdate(
-            id,
-            { name, genre, watched, rate },
-            { new: true }
-        )
+        deleteDirector: async (_, { id }) => {
+            try {
+                return await Director.findByIdAndDelete(id).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to delete director');
+            }
+        },
+        deleteMovie: async (_, { id }) => {
+            try {
+                return await Movie.findByIdAndDelete(id).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to delete movie');
+            }
+        },
+        updateDirector: async (_, { id, name, age }) => {
+            try {
+                return await Director.findByIdAndUpdate(
+                    id,
+                    { name, age },
+                    { new: true }
+                ).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to update director');
+            }
+        },
+        updateMovie: async (_, { id, name, genre, watched, rate }) => {
+            try {
+                return await Movie.findByIdAndUpdate(
+                    id,
+                    { name, genre, watched, rate },
+                    { new: true }
+                ).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to update movie');
+            }
+        }
     },
     Movie: {
-        director: (movie) => Director.findById(movie.directorId)
+        director: async (movie) => {
+            try {
+                return await Director.findById(movie.directorId).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch director');
+            }
+        }
     },
     Director: {
-        movies: (director) => Movie.find({ directorId: director.id })
+        movies: async (director) => {
+            try {
+                return await Movie.find({ directorId: director.id }).exec();
+            } catch (error) {
+                console.error(error);
+                throw new Error('Failed to fetch movies');
+            }
+        }
     }
 };
 
