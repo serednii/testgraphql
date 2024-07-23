@@ -1,0 +1,138 @@
+import re
+
+def clearBreakCharacter(expression):
+	if expression.startswith('\n') :
+		expression = expression[1:] 
+		return clearBreakCharacter(expression)
+	if expression.endswith('\n'):
+		expression = expression[:-1]
+		return clearBreakCharacter(expression)
+	return expression
+
+# провірка на парність відкритих і закритих дужок 
+def isParenthesesBalanced(expression):
+    stack = []
+    opening_brackets = {'(', '[', '{'}
+    closing_brackets = {')': '(', ']': '[', '}': '{'}
+
+    for char in expression:
+        if char in opening_brackets:
+            stack.append(char)
+        elif char in closing_brackets:
+            if not stack or stack.pop() != closing_brackets[char]:
+                return False
+    return not stack  # Все скобки должны быть правильно закрыты
+
+def findCloseBlock(str, index, num):
+	indexOpen = str.find('{', index + 1)
+	indexClose = str.find('}', index + 1)
+	# print(index)
+	# print(indexOpen)
+	# print(indexClose)
+	# Якщо немає парних закриваючих скобок 
+	if indexClose == -1:
+		raise ValueError("Немає закриваючих скобок")
+	# якщо попереду немає відкриваючих вложених скобок або вони є дальше за перші закриваючі  і закриваючі скобки є дальше по індексу як відкиваючі 
+	elif (indexOpen == -1 or indexOpen > indexClose) and indexClose > index:
+		if num == 0:
+			# Повертаємо номер закриваючої дужки
+			return indexClose
+		else:
+			num = num - 1
+			return findCloseBlock(str, indexClose, num)
+
+	#Якщо попереду є ще одні відкриваючі скобки 
+	elif indexOpen < indexClose:
+		num = num + 1
+		return findCloseBlock(str, indexOpen, num)
+
+
+def separateText(list, str):
+	str = clearBreakCharacter(str)
+	# print(str)
+	# print('--------------+++-------------')
+
+	# пошук команд read|write
+	match = re.match(r'\s*(read|write).*[\n;]', str)
+	if match:
+		matched_text = match.group()
+		matched_text1= clearBreakCharacter(matched_text)
+		# Вырезаем найденный текст из начала строки, учитывая пробелы
+		modified_text = str[len(matched_text):]
+		list.append(matched_text1)
+		# print(modified_text)
+		# print('---------------------------')
+		return separateText(list, modified_text)
+	# пошук команд if|ifnot|while|whilenot
+	match = re.match(r'\s*(if|ifnot|while|whilenot).*\n', str)
+	if match:
+		indexCloseBlock = findCloseBlock(str, str.find('{'), 0)
+		modified_text = str[indexCloseBlock+2:]
+		# print('***************')
+		# print(modified_text)
+		# print('***************')
+
+
+
+		matched_text = str[:indexCloseBlock+1]
+		list.append([matched_text])
+		return separateText(list, modified_text)
+
+
+	# пошук на вирази формула
+	# print('***** ',str)
+	paternPrev = r'.+;'
+	pattern = r'^\s*((([a-zA-Z_]+)([a-zA-Z0-9_]*)\s*=\s*)|\s*\(*\s*(([a-zA-Z_]+)([a-zA-Z0-9_]*)|([0-9]+))\s*\)*\s*[-+*/]\s*)+\s*\(*\s*(([a-zA-Z_]+)([a-zA-Z0-9_]*)|([0-9]+))\s*\)*\s*;'
+	matchPrev = re.match(paternPrev, str)# Шукаємо строку яка закінчується символом ;
+	if matchPrev:
+		match = re.fullmatch(pattern, matchPrev.group())#Тепер в ній провіряємо справність формули
+		# print('---', match)
+		if match:
+			matched_text = match.group()
+			if not isParenthesesBalanced(matched_text):#Перевірка на парність закриваючих і відкриваючих дужок
+				print(f"Error scoup.")
+			else:
+				list.append(matched_text)
+				modified_text = re.sub(pattern, '', str)
+				# print('***************+++++++')
+				# print(modified_text)
+				# print('***************+++++++')
+				return separateText(list, modified_text)
+
+
+	# else:
+		# if len(str) > 0:
+		# 	print("Sysntasis error")
+
+	return list
+
+	
+
+
+
+
+program_text = """
+read> a;
+read> b;
+dfdgf = rfg4rg + d4rt345yrt;
+read> c;
+dfdgf = rfg4rg + d4rt345yrt;
+dfdgf = rfg4rg + d4rt345yrt;
+if[d*2-3.5]{
+	while[b-5]{
+		a=a+2*c;
+		b=b-1;
+	}
+}
+write> a;"""
+
+
+
+lists = separateText([], program_text)
+print(len(lists))
+print(lists)
+
+for stroka in lists:
+	print(stroka)
+
+
