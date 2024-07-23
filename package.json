@@ -15,5 +15,9 @@
     "graphql-type-json": "^0.3.2",
     "mongoose": "^8.5.1",
     "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
   }
 }

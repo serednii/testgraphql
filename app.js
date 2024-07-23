@@ -2,7 +2,8 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const schema = require('./schemaLink/schemaLink'); // Убедитесь, что путь правильный
 const mongoose = require('mongoose');
-
+//Setting buildpack to heroku/nodejs... done
+//https://graphql-test-b55876792bfd.herokuapp.com/ | https://git.heroku.com/graphql-test.git
 const app = express();
 const PORT = 3040;
 
