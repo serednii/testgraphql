@@ -100,9 +100,10 @@ const startServer = async () => {
     await server.start();
 
     server.applyMiddleware({ app });
+    const PORT = process.env.PORT || 3040; // Використовуємо змінну середовища для порту
 
-    app.listen({ port: 3040 }, () =>
-        console.log(`Server ready at http://localhost:3040${server.graphqlPath}`)
+    app.listen({ port: PORT }, () =>
+        console.log(`Server ready at http://localhost:${server.graphqlPath}`)
     );
 };
 
