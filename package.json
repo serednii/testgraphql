@@ -1,14 +1,15 @@
 {
   "homepage": "https://serednii.github.io/testweb",
   "scripts": {
-    "deploy": "gh-pages -d dist",
-    "dev": "nodemon app.js"
+    "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
     "gh-pages": "^6.1.0"
   },
   "dependencies": {
+    "@apollo/server": "^4.10.5",
     "apollo-server-express": "^3.13.0",
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "graphql": "^16.9.0",

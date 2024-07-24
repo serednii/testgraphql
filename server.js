@@ -1,192 +1,105 @@
-const mongoose = require('mongoose');
 const express = require('express');
-const { ApolloServer, gql } = require('apollo-server-express');
-const cors = require('cors');
+const { ApolloServer, gql } = require('@apollo/server');
+const mongoose = require('mongoose');
 
 // Імпорт моделей
-const Movie = require('./models/movie');
-const Director = require('./models/director');
+const Menu = require('./modelsLink/Menu'); // Переконайтесь, що шлях правильний
+const LinkItem = require('./modelsLink/LinkItem'); // Переконайтесь, що шлях правильний
 
-const app = express();
-const PORT = process.env.PORT || 3040;
-
-// Підключення до MongoDB
-mongoose.connect('mongodb+srv://seredniimykola:h5ZgrweHvwejowJY@test.2hvsgym.mongodb.net/Link-data?retryWrites=true&w=majority&appName=test');
-
-// Встановлення обробника подій для підключення до MongoDB
-const dbConnection = mongoose.connection;
-dbConnection.on('error', err => console.log(`Connection error: ${err}`));
-dbConnection.once('open', () => {
-    console.log('Connected to DB!');
-});
-
-// Використання CORS
-app.use(cors());
-
-// Схема GraphQL
+// Оголошення схеми GraphQL
 const typeDefs = gql`
-    type Movie {
-        id: ID!
-        name: String!
-        genre: String!
-        watched: Boolean!
-        rate: Int
-        directorID: ID
-        director: Director
-    }
+  scalar JSON
 
-    type Director {
-        id: ID!
-        name: String!
-        age: Int!
-        movies: [Movie]
-    }
+  type LinkItem {
+    id: ID!
+    link: String
+    name: String!
+    idArticle: Int
+  }
 
-    type Query {
-        movie(id: ID!): Movie
-        movies: [Movie]
-        director(id: ID!): Director
-        directors: [Director]
-    }
+  type Menu {
+    id: ID!
+    menu: JSON
+  }
 
-    type Mutation {
-        addDirector(name: String!, age: Int!): Director
-        addMovie(name: String!, genre: String!, watched: Boolean!, rate: Int, directorId: ID): Movie
-        deleteDirector(id: ID!): Director
-        deleteMovie(id: ID!): Movie
-        updateDirector(id: ID!, name: String!, age: Int!): Director
-        updateMovie(id: ID!, name: String!, genre: String!, watched: Boolean!, rate: Int): Movie
-    }
+  type Query {
+    menu: [Menu]
+    linkItems: [LinkItem]
+    linkItem(id: ID!): LinkItem
+  }
+
+  type Mutation {
+    updateMenu(id: ID, menu: JSON!): Menu
+  }
 `;
 
-// Резолвери
+// Оголошення резолверів
 const resolvers = {
     Query: {
-        movie: async (_, { id }) => {
+        menu: async () => {
             try {
-                return await Movie.findById(id).exec();
+                return await Menu.find({});
             } catch (error) {
                 console.error(error);
-                throw new Error('Failed to fetch movie');
+                throw new Error('Failed to fetch menu');
             }
         },
-        movies: async () => {
+        linkItems: async () => {
             try {
-                return await Movie.find({}).exec();
+                return await LinkItem.find({});
             } catch (error) {
                 console.error(error);
-                throw new Error('Failed to fetch movies');
+                throw new Error('Failed to fetch link items');
             }
         },
-        director: async (_, { id }) => {
+        linkItem: async (_, { id }) => {
             try {
-                return await Director.findById(id).exec();
+                return await LinkItem.findById(id);
             } catch (error) {
                 console.error(error);
-                throw new Error('Failed to fetch director');
-            }
-        },
-        directors: async () => {
-            try {
-                return await Director.find({}).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to fetch directors');
+                throw new Error('Failed to fetch link item');
             }
         }
     },
     Mutation: {
-        addDirector: async (_, { name, age }) => {
+        updateMenu: async (_, { id, menu }) => {
             try {
-                const director = new Director({ name, age });
-                return await director.save();
+                if (id) {
+                    return await Menu.findByIdAndUpdate(id, { menu }, { new: true });
+                } else {
+                    const newMenu = new Menu({ menu });
+                    return await newMenu.save();
+                }
             } catch (error) {
                 console.error(error);
-                throw new Error('Failed to add director');
-            }
-        },
-        addMovie: async (_, { name, genre, watched, rate, directorId }) => {
-            try {
-                const movie = new Movie({ name, genre, watched, rate, directorId });
-                return await movie.save();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to add movie');
-            }
-        },
-        deleteDirector: async (_, { id }) => {
-            try {
-                return await Director.findByIdAndDelete(id).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to delete director');
-            }
-        },
-        deleteMovie: async (_, { id }) => {
-            try {
-                return await Movie.findByIdAndDelete(id).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to delete movie');
-            }
-        },
-        updateDirector: async (_, { id, name, age }) => {
-            try {
-                return await Director.findByIdAndUpdate(
-                    id,
-                    { name, age },
-                    { new: true }
-                ).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to update director');
-            }
-        },
-        updateMovie: async (_, { id, name, genre, watched, rate }) => {
-            try {
-                return await Movie.findByIdAndUpdate(
-                    id,
-                    { name, genre, watched, rate },
-                    { new: true }
-                ).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to update movie');
-            }
-        }
-    },
-    Movie: {
-        director: async (movie) => {
-            try {
-                return await Director.findById(movie.directorId).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to fetch director');
-            }
-        }
-    },
-    Director: {
-        movies: async (director) => {
-            try {
-                return await Movie.find({ directorId: director.id }).exec();
-            } catch (error) {
-                console.error(error);
-                throw new Error('Failed to fetch movies');
+                throw new Error('Failed to update menu');
             }
         }
     }
 };
 
-// Налаштування Apollo Server
-const server = new ApolloServer({ typeDefs, resolvers });
+// Підключення до MongoDB
+mongoose.connect('mongodb://your-mongodb-uri')
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-async function startServer() {
+// Створення сервера Apollo
+const server = new ApolloServer({
+    typeDefs,
+    resolvers
+});
+
+// Створіть екземпляр express
+const app = express();
+
+const startServer = async () => {
     await server.start();
+
     server.applyMiddleware({ app });
 
-    app.listen(PORT, () => {
-        console.log(`Server started on http://localhost:${PORT}${server.graphqlPath}`);
-    });
-}
+    app.listen({ port: 3040 }, () =>
+        console.log(`Server ready at http://localhost:3040${server.graphqlPath}`)
+    );
+};
 
 startServer();
