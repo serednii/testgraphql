@@ -1,40 +1,38 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const mongoose = require('mongoose');
+const path = require('path');
 
 // Імпорт моделей
 const Menu = require('./modelsLink/Menu'); // Переконайтесь, що шлях правильний
 const LinkItem = require('./modelsLink/LinkItem'); // Переконайтесь, що шлях правильний
 
 // Оголошення схеми GraphQL
-const typeDefs = gql
-    `
-    scalar JSON
-    
-      type LinkItem {
-        id: ID!
-        link: String
-        name: String!
-        idArticle: Int
-      }
-    
-      type Menu {
-        id: ID!
-        menu: JSON
-      }
-    
-      type Query {
-          menu: [Menu]
-          linkItems: [LinkItem]
-          linkItem(id: ID!): LinkItem
-        }
-        
-        type Mutation {
-            updateMenu(id: ID, menu: JSON!): Menu
-        }
-        `
-
-
+const typeDefs = gql`
+  scalar JSON
+  
+  type LinkItem {
+    id: ID!
+    link: String
+    name: String!
+    idArticle: Int
+  }
+  
+  type Menu {
+    id: ID!
+    menu: JSON
+  }
+  
+  type Query {
+    menu: [Menu]
+    linkItems: [LinkItem]
+    linkItem(id: ID!): LinkItem
+  }
+  
+  type Mutation {
+    updateMenu(id: ID, menu: JSON!): Menu
+  }
+`;
 
 // Оголошення резолверів
 const resolvers = {
@@ -86,7 +84,6 @@ mongoose.connect('mongodb+srv://seredniimykola:h5ZgrweHvwejowJY@test.2hvsgym.mon
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-
 // Створення сервера Apollo
 const server = new ApolloServer({
     typeDefs,
@@ -96,14 +93,27 @@ const server = new ApolloServer({
 // Створіть екземпляр express
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'public'))); // Використовуємо middleware для обробки статичних файлів
+
+// Додайте маршрут для відображення HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Додайте маршрут для відправки повідомлення
+app.get('/message', (req, res) => {
+    res.json({ message: 'This is a message from the server.' });
+});
+
 const startServer = async () => {
     await server.start();
 
     server.applyMiddleware({ app });
+
     const PORT = process.env.PORT || 3040; // Використовуємо змінну середовища для порту
 
     app.listen({ port: PORT }, () =>
-        console.log(`Server ready at http://localhost:${server.graphqlPath}`)
+        console.log(`Server ready at http://localhost:${PORT}${server.graphqlPath}`)
     );
 };
 
