@@ -1,5 +1,5 @@
 const express = require('express');
-const { ApolloServer, gql } = require('@apollo/server');
+const { ApolloServer, gql } = require('apollo-server-express');
 const mongoose = require('mongoose');
 
 // Імпорт моделей
@@ -7,31 +7,34 @@ const Menu = require('./modelsLink/Menu'); // Переконайтесь, що �
 const LinkItem = require('./modelsLink/LinkItem'); // Переконайтесь, що шлях правильний
 
 // Оголошення схеми GraphQL
-const typeDefs = gql`
-  scalar JSON
+const typeDefs = gql
+    `
+    scalar JSON
+    
+      type LinkItem {
+        id: ID!
+        link: String
+        name: String!
+        idArticle: Int
+      }
+    
+      type Menu {
+        id: ID!
+        menu: JSON
+      }
+    
+      type Query {
+          menu: [Menu]
+          linkItems: [LinkItem]
+          linkItem(id: ID!): LinkItem
+        }
+        
+        type Mutation {
+            updateMenu(id: ID, menu: JSON!): Menu
+        }
+        `
 
-  type LinkItem {
-    id: ID!
-    link: String
-    name: String!
-    idArticle: Int
-  }
 
-  type Menu {
-    id: ID!
-    menu: JSON
-  }
-
-  type Query {
-    menu: [Menu]
-    linkItems: [LinkItem]
-    linkItem(id: ID!): LinkItem
-  }
-
-  type Mutation {
-    updateMenu(id: ID, menu: JSON!): Menu
-  }
-`;
 
 // Оголошення резолверів
 const resolvers = {
@@ -79,9 +82,10 @@ const resolvers = {
 };
 
 // Підключення до MongoDB
-mongoose.connect('mongodb://your-mongodb-uri')
+mongoose.connect('mongodb+srv://seredniimykola:h5ZgrweHvwejowJY@test.2hvsgym.mongodb.net/Link-data?retryWrites=true&w=majority&appName=test')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
+
 
 // Створення сервера Apollo
 const server = new ApolloServer({
